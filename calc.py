@@ -66,8 +66,9 @@ def check_user_auth(login, password):
             for user in list_users:
                 if user['login'] == login and user['password'] == password:
                     return user['id']
+                else:
+                    print('incorect password\n')
         except:
-            print('incorrect password')
             return False
 
 
@@ -148,42 +149,26 @@ def operations(user):
     while action != 'exit':
         print("Please inout operation in text mode like a + b, a - b, a * b, a / b or print 'exit' for login")
         if user:
-            print('or cos a, sin a, tan a, ctg a')
-            print('print history to view history for day')
+            print('or cos a, sin a, tan a, ctg a\nprint history to view history for day')
         action = input('input your operation\n')
-        day = date.today()
-
-        def result_(a):
-            calc = {'+': BaseMath.add, '-': BaseMath.sub, '*': BaseMath.mul, '/': BaseMath.div}
-            if a == 'cos' or a == 'sin' or a == 'tan' or a == 'ctg':
-                calc = {'sin': SuperMath.sin, 'cos': SuperMath.cos, 'tan': SuperMath.tan, 'ctg': SuperMath.ctg}
-                res = calc[a](float(action.split()[1]))
-            else:
-                res = calc[a](float(action.split()[0]), float(action.split()[2]))
-            print(res)
-            if user:
-                SuperMath.history(date=str(day), result=str(action + ' = ' + str(res)), userid=user)
         for i in action.split():
-            if i == '+':
-                result_(i)
-            elif i == '/':
-                result_(i)
-            elif i == '*':
-                result_(i)
-            elif i == '-':
-                result_(i)
-            if user:
-                if i == 'cos':
-                    result_(i)
-                elif i == 'sin':
-                    result_(i)
-                elif i == 'tan':
-                    result_(i)
-                elif i == 'ctg':
-                    result_(i)
-                elif i == 'history':
-                    print(SuperMath.history_read(userid=user))
-
+            try:
+                calc = {'+': BaseMath.add, '-': BaseMath.sub, '*': BaseMath.mul, '/': BaseMath.div}
+                if i == '+' or i == '-' or i == '*' or i == '/':
+                    res = calc[i](float(action.split()[0]), float(action.split()[2]))
+                    print(res)
+                    if user:
+                        SuperMath.history(date=str(date.today()), result=str(action + ' = ' + str(res)), userid=user)
+                if user:
+                    if i == 'cos' or i == 'sin' or i == 'tan' or i == 'ctg':
+                        calc = {'sin': SuperMath.sin, 'cos': SuperMath.cos, 'tan': SuperMath.tan, 'ctg': SuperMath.ctg}
+                        res = calc[i](float(action.split()[1]))
+                        print(res)
+                        SuperMath.history(date=str(date.today()), result=str(action + ' = ' + str(res)), userid=user)
+                    elif i == 'history':
+                        print(SuperMath.history_read(userid=user))
+            except Exception as e:
+                print(e)
 
 def main():
     login_input = (input('please input login, leave blank for anonimus \nor print "exit" to close programm >> '))

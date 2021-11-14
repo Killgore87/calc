@@ -70,12 +70,11 @@ def check_user_in_db(login, password=None):
                             return True
                 elif password:
                     for user in list_users:
-                        if user['login'] == login and user['password'] == password:
-                            return user['id']
-                        else:
-                            print('incorrect password\n')
-                else:
-                    print('incorrect password\n')
+                        if user['login'] == login:
+                            if user['password'] == password:
+                                return user['id']
+                            else:
+                                print('incorrect password\n')
             except:
                 return False
 

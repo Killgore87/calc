@@ -3,6 +3,7 @@ from datetime import date
 import json
 import os
 import getpass
+import re
 file = os.path.join('users.json')
 file_history = os.path.join('history.json')
 
@@ -26,7 +27,6 @@ class SuperMath(BaseMath):
     ctg = (lambda a: math.cos(a) / math.sin(a))
 
     def history_read(userid):
-
         with open(file_history, 'r') as history_data:
             try:
                 list_history = json.load(history_data)
@@ -57,31 +57,25 @@ class SuperMath(BaseMath):
         return history
 
 
-def check_user_auth(login, password):
-    if not os.path.isfile(file):
-        return False
-    with open(file, 'r') as users:
-        try:
-            list_users = json.load(users)
-            for user in list_users:
-                if user['login'] == login and user['password'] == password:
-                    return user['id']
-                else:
-                    print('incorect password\n')
-        except:
-            return False
-
-
-def check_user_in_db(login):
+def check_user_in_db(login, password=None):
     if not os.path.isfile(file):
         return False
     else:
         with open(file, 'r') as users:
             try:
                 list_users = json.load(users)
-                for user in list_users:
-                    if user['login'] == login:
-                        return True
+                if password is None:
+                    for user in list_users:
+                        if user['login'] == login:
+                            return True
+                elif password:
+                    for user in list_users:
+                        if user['login'] == login and user['password'] == password:
+                            return user['id']
+                        else:
+                            print('incorrect password\n')
+                else:
+                    print('incorrect password\n')
             except:
                 return False
 
@@ -107,13 +101,8 @@ def write_to_db(**new_user):
 
 def validate_password(password, confirm_password):
     if len(password) >= 8 and password == confirm_password:
-        num_of_cap = 0
-        num_of_num = 0
-        for i in password:
-            if 'A' <= i <= 'Z':
-                num_of_cap += 1
-            if '0' <= i <= '9':
-                num_of_num += 1
+        num_of_cap = sum(1 for elem in password if elem.isupper())
+        num_of_num = len(re.findall(r'[0-9]',password))
         if num_of_num >= 2 and num_of_cap >= 1:
             return True
         else:
@@ -153,7 +142,7 @@ def operations(user):
         action = input('input your operation\n')
         for i in action.split():
             try:
-                calc = {'+': BaseMath.add, '-': BaseMath.sub, '*': BaseMath.mul, '/': BaseMath.div}
+                calc = {'+': SuperMath.add, '-': SuperMath.sub, '*': SuperMath.mul, '/': SuperMath.div}
                 if i == '+' or i == '-' or i == '*' or i == '/':
                     res = calc[i](float(action.split()[0]), float(action.split()[2]))
                     print(res)
@@ -170,25 +159,26 @@ def operations(user):
             except Exception as e:
                 print(e)
 
+
 def main():
-    login_input = (input('please input login, leave blank for anonimus \nor print "exit" to close programm >> '))
-    if login_input == 'exit':
-        exit(0)
-    elif len(login_input) == 0:
-        operations(False)
-    else:
-        if check_user_in_db(login_input):
-            password_input = getpass.getpass('password >>>')
-            userid = check_user_auth(login_input, password_input)
-            if userid:
-                try:
-                    operations(userid)
-                except Exception as e:
-                    print(e, type(e))
+    while True:
+        login_input = (input('please input login, leave blank for anonimus \nor print "exit" to close programm >> '))
+        if login_input == 'exit':
+            exit(0)
+        elif len(login_input) == 0:
+            operations(False)
         else:
-            print('New user ', login_input, ' enter')
-            register(login_input)
+            if check_user_in_db(login_input):
+                password_input = getpass.getpass('password >>>')
+                userid = check_user_in_db(login_input, password_input)
+                if userid:
+                    try:
+                        operations(userid)
+                    except Exception as e:
+                        print(e, type(e))
+            else:
+                print('New user ', login_input, ' enter')
+                register(login_input)
 
 
-while True:
-    main()
+main()
